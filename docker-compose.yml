@@ -1,0 +1,41 @@
+version: "3.9"
+services:
+  sd:
+    image: localhost/sd/automatic1111:latest
+    env_file: ./.env
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Use a `.env` file to change this; see `env.example`:
+        - GIT_CHECKOUT=${AUTOMATIC1111_HASH:-0cc0ee1bcb4c24a8c9715f66cede06601bfc00c8}
+        - TXT2VECTORGRAPHICS_CHECKOUT=${AUTOMATIC1111_TXT2VECTORGRAPHICS_HASH:-2b780584f603b9abebba02527f3e0c3eed63426b}
+        - DEFORUM_CHECKOUT=${AUTOMATIC1111_DEFORUM_HASH:-ff1769dab53220082a32de0dafc1534c6964f761}
+    command: bash -c 'python launch.py --disable-safe-unpickle --lora-dir /res/lora --embeddings-dir /res/embeddings --ckpt-dir /res/checkpoints'
+    init: true
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./storage/res:/res:rw
+      - ./storage/out:/root/stable-diffusion-webui/outputs
+      - cache-automatic1111:/root/.cache
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  resources:
+    image: localhost/sd/resources:latest
+    env_file: ./.env
+    build:
+      context: .
+      dockerfile: Dockerfile.resources
+    init: true
+    volumes:
+      - ./storage/res:/res:rw
+
+volumes:
+  cache-automatic1111:

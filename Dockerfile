@@ -1,0 +1,94 @@
+FROM nvidia/cuda:12.1.0-base-ubuntu20.04
+
+SHELL ["/bin/bash", "-c"]
+
+WORKDIR /root
+
+RUN apt update \
+ && apt install --no-install-recommends -y curl wget git libglib2.0-0 libgl1 build-essential fonts-dejavu \
+ && apt-get clean
+
+VOLUME /root/.cache
+VOLUME /res
+
+ENV PYTHONUNBUFFERED=1
+ENV GRADIO_SERVER_NAME=0.0.0.0
+ENV GRADIO_SERVER_PORT=7860
+EXPOSE 7860
+
+ENV BASH_ENV=/etc/profile
+ENV CONDA_DEFAULT_ENV=base
+
+RUN mkdir ~/.conda \
+ && wget https://repo.anaconda.com/miniconda/Miniconda3-py38_4.12.0-Linux-x86_64.sh -O ~/miniconda.sh -q \
+ && mkdir -p /opt \
+ && bash ~/miniconda.sh -b -p /opt/conda \
+ && rm ~/miniconda.sh \
+ && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh \
+ && echo ". /opt/conda/etc/profile.d/conda.sh" >> /etc/profile \
+ && echo "conda activate \$CONDA_DEFAULT_ENV" >> /etc/profile \
+ && echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc \
+ && echo "conda activate \$CONDA_DEFAULT_ENV" >> ~/.bashrc \
+ && find /opt/conda/ -follow -type f -name '*.a' -delete \
+ && find /opt/conda/ -follow -type f -name '*.js.map' -delete \
+ && /opt/conda/bin/conda clean -afy
+
+RUN conda install python=3.10.6 -c conda-forge \
+ && conda install pytorch==1.12.1 torchvision==0.13.1 torchaudio==0.12.1 -c pytorch \
+ && conda install -c nvidia cuda-toolkit \
+ && conda remove --force --yes ffmpeg
+
+RUN apt update \
+ && DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y ffmpeg potrace \
+ && apt-get clean
+
+ARG GIT_CHECKOUT=master
+ARG TXT2VECTORGRAPHICS_CHECKOUT=main
+ARG DEFORUM_CHECKOUT=automatic1111-webui
+
+RUN git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git \
+ && cd stable-diffusion-webui \
+ && git checkout $GIT_CHECKOUT \
+ && COMMANDLINE_ARGS="--exit --skip-torch-cuda-test" python launch.py \
+ && git clone https://github.com/Hafiidz/latent-diffusion.git repositories/latent-diffusion \
+ && cd repositories/latent-diffusion \
+ && git checkout abf33e7002d59d9085081bce93ec798dcabd49af \
+ && git clone https://github.com/GeorgLegato/Txt2Vectorgraphics.git /root/vector-script \
+ && cd /root/vector-script \
+ && git checkout $TXT2VECTORGRAPHICS_CHECKOUT \
+ && cp txt2vectorgfx.py /root/stable-diffusion-webui/scripts/ \
+ && git clone https://github.com/deforum-art/deforum-for-automatic1111-webui.git /root/stable-diffusion-webui/extensions/deforum \
+ && cd /root/stable-diffusion-webui/extensions/deforum \
+ && git checkout $DEFORUM_CHECKOUT
+
+RUN ln -s /res/sd-v1-4.ckpt /root/stable-diffusion-webui/models/Stable-diffusion/sd-v1-4.ckpt \
+ && mkdir -p /root/stable-diffusion-webui/models/LDSR \
+ && ln -s /res/LDSR.ckpt /root/stable-diffusion-webui/models/LDSR/model.ckpt \
+ && ln -s /res/LDSR.yaml /root/stable-diffusion-webui/models/LDSR/project.yaml \
+ && mkdir -p /root/stable-diffusion-webui/models/SwinIR \
+ && ln -s /res/SwinIR_4x.pth /root/stable-diffusion-webui/models/SwinIR/SwinIR_4x.pth \
+ && mkdir -p /root/stable-diffusion-webui/models/Deforum \
+ && ln -s /res/dpt_large-midas-2f21e586.pt /root/stable-diffusion-webui/models/Deforum/dpt_large-midas-2f21e586.pt \
+ && ln -s /res/AdaBins_nyu.pt /root/stable-diffusion-webui/models/Deforum/AdaBins_nyu.pt \
+ && mkdir -p /root/stable-diffusion-webui/models/ESRGAN \
+ && ln -s /res/BSRGAN.pth /root/stable-diffusion-webui/models/ESRGAN/BSRGAN.pth \
+ && ln -s /res/ESRGAN.pth /root/stable-diffusion-webui/models/ESRGAN/ESRGAN_4x.pth \
+ && ln -s /res/RealESRGAN_x4plus.pth /root/stable-diffusion-webui/models/ESRGAN/RealESRGAN_x4plus.pth \
+ && ln -s /res/RealESRGAN_x4plus_anime_6B.pth /root/stable-diffusion-webui/models/ESRGAN/RealESRGAN_x4plus_anime_6B.pth \
+ && mkdir -p /root/stable-diffusion-webui/repositories/CodeFormer/weights/facelib \
+ && ln -s /res/parsing_parsenet.pth /root/stable-diffusion-webui/repositories/CodeFormer/weights/facelib/parsing_parsenet.pth \
+ && ln -s /res/detection_Resnet50_Final.pth /root/stable-diffusion-webui/repositories/CodeFormer/weights/facelib/detection_Resnet50_Final.pth \
+ && mkdir -p /root/stable-diffusion-webui/models/Codeformer \
+ && ln -s /res/codeformer.pth /root/stable-diffusion-webui/models/Codeformer/codeformer-v0.1.0.pth \
+ && mkdir -p /root/stable-diffusion-webui/models/GFPGAN \
+ && ln -s /res/parsing_parsenet.pth /root/stable-diffusion-webui/models/GFPGAN/parsing_parsenet.pth \
+ && ln -s /res/detection_Resnet50_Final.pth /root/stable-diffusion-webui/models/GFPGAN/detection_Resnet50_Final.pth \
+ && ln -s /res/GFPGANv1.4.pth /root/stable-diffusion-webui/models/GFPGAN/GFPGANv1.4.pth \
+ && echo -e "#!/bin/bash\nset -e\n" > /root/bootstrap.sh \
+ && echo -e "[ ! -f '/root/.cache/persistent-ui-config.json' ] && echo '{}' > /root/.cache/persistent-ui-config.json\nln -sf /root/.cache/persistent-ui-config.json /root/stable-diffusion-webui/ui-config.json\n" >> /root/bootstrap.sh \
+ && echo -e "[ ! -f '/root/.cache/persistent-config.json' ] && echo '{}' > /root/.cache/persistent-config.json\nln -sf /root/.cache/persistent-config.json /root/stable-diffusion-webui/config.json\n" >> /root/bootstrap.sh \
+ && echo -e "exec \"\$@\"" >> /root/bootstrap.sh \
+ && chmod +x /root/bootstrap.sh
+
+WORKDIR /root/stable-diffusion-webui
+ENTRYPOINT ["/root/bootstrap.sh"]

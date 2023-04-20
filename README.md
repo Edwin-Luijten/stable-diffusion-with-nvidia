@@ -1,12 +1,14 @@
 # Stable diffusion with Nvidia
 
 <!-- TOC -->
+
 * [Stable diffusion with Nvidia](#stable-diffusion-with-nvidia)
-  * [Usage](#usage)
-    * [Prerequisites](#prerequisites)
-    * [Installation](#installation)
-    * [⭐ Web UI with AUTOMATIC1111](#-web-ui-with-automatic1111)
-    * [Adding Checkpoints/Embeddings/LoRA](#adding-checkpointsembeddingslora)
+    * [Usage](#usage)
+        * [Prerequisites](#prerequisites)
+        * [Installation](#installation)
+        * [⭐ Web UI with AUTOMATIC1111](#-web-ui-with-automatic1111)
+        * [Adding Checkpoints/Embeddings/LoRA](#adding-checkpointsembeddingslora)
+
 <!-- TOC -->
 
 ## Usage
@@ -73,3 +75,5 @@ Once downloaded place it in: storage/checkpoints.
 Checkpoints: storage/checkpoints  
 Embeddings: storage/embeddings  
 LoRA: storage/lora  
+  
+Restart your container to make the new files available in the model selector.

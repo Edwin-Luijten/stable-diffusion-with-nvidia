@@ -59,7 +59,8 @@ RUN git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git \
  && cp txt2vectorgfx.py /root/stable-diffusion-webui/scripts/ \
  && git clone https://github.com/deforum-art/deforum-for-automatic1111-webui.git /root/stable-diffusion-webui/extensions/deforum \
  && cd /root/stable-diffusion-webui/extensions/deforum \
- && git checkout $DEFORUM_CHECKOUT
+ && git checkout $DEFORUM_CHECKOUT \
+ && git clone https://github.com/some9000/StylePile.git /root/stable-diffusion-webui/extensions/StylePile
 
 RUN ln -s /res/sd-v1-4.ckpt /root/stable-diffusion-webui/models/Stable-diffusion/sd-v1-4.ckpt \
  && mkdir -p /root/stable-diffusion-webui/models/LDSR \

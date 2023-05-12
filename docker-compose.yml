@@ -1,6 +1,26 @@
 version: "3.9"
 services:
-  sd:
+  sd-cpu:
+    image: localhost/sdc/automatic1111:latest
+    env_file: ./.env
+    build:
+      context: .
+      dockerfile: Dockerfile.cpu
+      args:
+        # Use a `.env` file to change this; see `env.example`:
+        - GIT_CHECKOUT=${AUTOMATIC1111_HASH:-master}
+        - TXT2VECTORGRAPHICS_CHECKOUT=${AUTOMATIC1111_TXT2VECTORGRAPHICS_HASH:-main}
+        - DEFORUM_CHECKOUT=${AUTOMATIC1111_DEFORUM_HASH:-ff1769dab53220082a32de0dafc1534c6964f761}
+    command: bash -c 'python launch.py --skip-torch-cuda-test --precision full --no-half --disable-safe-unpickle --lora-dir /res/lora --embeddings-dir /res/embeddings --ckpt-dir /res/checkpoints'
+    init: true
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./storage/res:/res:rw
+      - ./storage/out:/root/stable-diffusion-webui/outputs
+      - cache-automatic1111:/root/.cache
+
+  sd-nvidia:
     image: localhost/sd/automatic1111:latest
     env_file: ./.env
     build:

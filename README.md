@@ -18,18 +18,21 @@ For a detailed description of how to get this working in Windows using WSL2 and 
 
 ### Prerequisites
 
-- A modern Nvidia GPU
 - Windows 10/11 with [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) or native Linux
 - Lots of free disk space (200+ GB recommended if experimenting)
 - [Docker CE](https://docs.docker.com/engine/install/) installed
-- [Nvidia Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#docker)
-  installed
 - Git installed in WSL2/Linux
 - The file [`sd-v1-4.ckpt`](https://huggingface.co/CompVis/stable-diffusion-v-1-4-original)
   and/or [`v1-5-pruned-emaonly.ckpt`](https://huggingface.co/runwayml/stable-diffusion-v1-5) from Hugging Face (free
   registration required)
     - Alternatively, after registering for a Hugging Face account, you can generate a
       new [token](https://huggingface.co/settings/tokens) for automatic downloading
+
+#### Prerequisites for usage with an Nvidia GPU
+
+- A modern Nvidia GPU
+- [Nvidia Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#docker)
+  installed
 
 ### Installation
 

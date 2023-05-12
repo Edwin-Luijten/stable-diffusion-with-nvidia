@@ -64,7 +64,8 @@ in `storage/out/`.
 Launch:
 
 ```bash
-./run.sh
+docker compose up sd-cpu
+docker compose up sd-gpu
 ```
 
 Visit: http://0.0.0.0:7860 to access the web UI.

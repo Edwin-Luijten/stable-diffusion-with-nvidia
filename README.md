@@ -64,6 +64,9 @@ in `storage/out/`.
 Launch:
 
 ```bash
+First time usage: 
+docker compose up resources
+--
 docker compose up sd-cpu
 docker compose up sd-gpu
 ```
